@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(!missedInput){
-            //todo create the user on server if all required inputs are valid start activity give parameters with putextra that in conversionactivity all
+            //todo if user is already created on server dont create it again
             //conversations of the user can be loaded
 
             /*todo create participant on server with method in retrofit object
@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
 
-                    //Log.d("created participant", response.body().getfirstName());
+                    Log.d("created participant", response.body().getfirstName());
                     Toast.makeText(getApplicationContext() ,"firstName: " + response.body().getfirstName() + " lastName: " + response.body().getlastName() + " email: " + response.body().getEmail(), Toast.LENGTH_LONG).show();
                     Intent intentConversations = new Intent(getApplicationContext(), ConversationActivity.class);
                     //todo add current participant object

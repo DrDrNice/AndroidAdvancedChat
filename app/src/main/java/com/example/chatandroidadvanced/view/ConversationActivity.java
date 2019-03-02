@@ -13,15 +13,24 @@ import android.widget.Toast;
 
 import com.example.chatandroidadvanced.R;
 import com.example.chatandroidadvanced.model.Conversation;
+import com.example.chatandroidadvanced.model.ConversationService;
 import com.example.chatandroidadvanced.model.Participant;
+import com.example.chatandroidadvanced.model.ParticipantService;
 import com.example.chatandroidadvanced.viewmodel.ConversationListAdapter;
+import com.example.chatandroidadvanced.viewmodel.RetrofitInstance;
 
 import java.util.LinkedList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ConversationActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private Participant currentUser;
+    RetrofitInstance retrofitInstance;
     private ConversationListAdapter conversationListAdapter;
     private LinkedList<Conversation> conversationList = new LinkedList<>();
 
@@ -30,12 +39,12 @@ public class ConversationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversation);
 
-        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbarConversations);
-        setSupportActionBar(toolbar);
-
         //get current user which is logged in
         currentUser = (Participant)getIntent().getSerializableExtra("currentUser");
-        Log.d("current user is", currentUser.getfirstName()+ " " + currentUser.getlastName() + " " + currentUser.getId());
+        Log.d("current user in conversationActivity is", currentUser.getfirstName()+ " " + currentUser.getlastName() + " " + currentUser.getId());
+
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbarConversations);
+        setSupportActionBar(toolbar);
 
         recyclerView = findViewById(R.id.rcvConversations);
         conversationListAdapter = new ConversationListAdapter(this, conversationList, currentUser);
@@ -47,11 +56,49 @@ public class ConversationActivity extends AppCompatActivity {
 
         //todo delete this example list
         //only for testing self defined fix list.
-        int wordListSize = conversationList.size();
+
         //conversationList.addLast(new Conversation("jim rogers", "jim rogers", "bla bla bla"));
         //conversationList.addLast(new Conversation("jim sanders", "jim sanders", "keine ahnung"));
+
+        retrofitInstance = new RetrofitInstance();
+        //todo not sure if needed
+        //getConversations();
+
+        /*int wordListSize = conversationList.size();
         recyclerView.getAdapter().notifyItemInserted(wordListSize);
-        recyclerView.smoothScrollToPosition(wordListSize);
+        recyclerView.smoothScrollToPosition(wordListSize);*/
+    }
+
+    private void getConversations(){
+        ConversationService conversationService = retrofitInstance.getConversationService();
+        Call<List<Conversation>> call = conversationService.getAllConversations();
+        call.enqueue(new Callback<List<Conversation>>() {
+            @Override
+            public void onResponse(Call<List<Conversation>> call, Response<List<Conversation>> response) {
+                if(!response.isSuccessful()){
+                    Log.d("get conversation not successfull", String.valueOf(response.code()));
+                    return;
+                }
+
+                List<Conversation> posts = response.body();
+                //Log.d("get last participant", response.body().get(posts.size()-1).getfirstName() + " " + response.body().get(posts.size()-1).getlastName());
+                for (Conversation conversation : posts) {
+                    if (!conversationList.contains(conversation.getId())) {
+                        //Log.d("get conversation", conversation.getfirstName() + " " + conversation.getlastName());
+                        conversationList.addLast(conversation);
+                    }
+                }
+
+                int wordListSize = conversationList.size();
+                recyclerView.getAdapter().notifyItemInserted(wordListSize);
+                recyclerView.smoothScrollToPosition(wordListSize);
+            }
+
+            @Override
+            public void onFailure(Call<List<Conversation>> call, Throwable t) {
+                Log.d("get conversation failed", t.toString());
+            }
+        });
     }
 
     @Override

@@ -41,7 +41,7 @@ public class Message {
     @Expose
     private Integer senderId;
 
-    public Message(String content, Integer receiverId, Integer senderId) {
+    public Message(String content, Integer receiverId, Integer senderId, Integer conversationId) {
         this.content = content;
         this.conversationId = conversationId;
         this.receiverId = receiverId;

@@ -1,5 +1,6 @@
 package com.example.chatandroidadvanced.view;
 
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,18 +20,15 @@ import com.example.chatandroidadvanced.model.ConversationService;
 import com.example.chatandroidadvanced.model.Message;
 import com.example.chatandroidadvanced.model.MessageService;
 import com.example.chatandroidadvanced.model.Participant;
-import com.example.chatandroidadvanced.model.ParticipantService;
 import com.example.chatandroidadvanced.viewmodel.MessageListAdapter;
 import com.example.chatandroidadvanced.viewmodel.RetrofitInstance;
 
+import java.io.IOException;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.MissingResourceException;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -38,13 +36,11 @@ public class ChatActivity extends AppCompatActivity {
     private Participant currentUser;
     private Conversation currentConversation;
     private EditText inputText;
-    private RetrofitInstance retrofitInstance;
+    private RetrofitInstance retrofitInstanceMessage;
     MessageService messageService;
 
     private MessageListAdapter messageListAdapter;
     private LinkedList<Message> messageList = new LinkedList<>();
-    //todo return conversationlist to conversation activity
-    private LinkedList<Conversation> conversationList = new LinkedList<>();
 
     private RecyclerView recyclerView;
 
@@ -52,29 +48,34 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        
+        //get clicked contact from contaclistadapter
+        participant = (Participant)getIntent().getSerializableExtra("contact");
+        //get current user
+        currentUser = (Participant)getIntent().getSerializableExtra("currentUser");
+        //get current conversation
+        currentConversation = (Conversation)getIntent().getSerializableExtra("currentConversation");
 
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbarChat);
         setSupportActionBar(toolbar);
 
-        //todo get clicked contact from contactlistadapter and set it as toolbar header
-        participant = (Participant)getIntent().getSerializableExtra("contact");
+        //get clicked contact from contactlistadapter and set it as toolbar header
         String firstName = participant.getfirstName();
         String lastName = participant.getlastName();
         toolbar.setTitle(firstName + " " + lastName);
-
-        //get current user
-        currentUser = (Participant)getIntent().getSerializableExtra("currentUser");
 
         inputText = (EditText)findViewById(R.id.chatInputText);
 
         recyclerView = (RecyclerView)findViewById(R.id.rcvChat);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        messageListAdapter = new MessageListAdapter(this, messageList);
+        recyclerView.setAdapter(messageListAdapter);
 
-        retrofitInstance = new RetrofitInstance();
-        messageService = retrofitInstance.getMessageService();
+        retrofitInstanceMessage = new RetrofitInstance();
+        messageService = retrofitInstanceMessage.getMessageService();
 
         //load data from server in messagelist
-        Call<List<Message>> call = messageService.getAllMessages();
+        /*Call<List<Message>> call = messageService.getAllMessages();
         call.enqueue(new Callback<List<Message>>() {
             @Override
             public void onResponse(Call<List<Message>> call, Response<List<Message>> response) {
@@ -97,10 +98,7 @@ public class ChatActivity extends AppCompatActivity {
             public void onFailure(Call<List<Message>> call, Throwable t) {
                 Log.d("get prev messages failed", t.toString());
             }
-        });
-
-        messageListAdapter = new MessageListAdapter(this, messageList);
-        recyclerView.setAdapter(messageListAdapter);
+        });*/
     }
 
     @Override
@@ -124,16 +122,18 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     public void sendText(View view) {
-        //Todo send text when click on send happens push it to the server
         //todo method that data keeps updated and gets called when message is received
 
         //if message list empty it is a new conversation so create one conversation if a message is sent
         //push conversation on server and insert conversation in list
-        if(messageList.size() == 0) {
+        /*if(messageList.isEmpty()) {
             //todo push new conversation to server and save pushed object in currentconversation so that the id can be used for messages
-            ConversationService conversationService = retrofitInstance.getConversationService();
-            Call<Conversation> call = conversationService.createConversation(new Conversation("example topic"));
-            call.enqueue(new Callback<Conversation>() {
+            //todo not working because method runs parallel.. es muss gewartet werden bis conversation erstellt wurde und dann kann message gesendet werden
+            Conversation conversation = new Conversation(inputText.getText().toString());
+            RetrofitInstance retrofitInstanceConversation = new RetrofitInstance();
+            ConversationService conversationService = retrofitInstanceConversation.getConversationService();
+            Call<Conversation> callConversation = conversationService.createConversation(conversation);
+            callConversation.enqueue(new Callback<Conversation>() {
                 @Override
                 public void onResponse(Call<Conversation> call, Response<Conversation> response) {
                     if(!response.isSuccessful()){
@@ -141,8 +141,10 @@ public class ChatActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext() ,"Something went wrong during creating conversation, please try again.", Toast.LENGTH_LONG).show();
                         return;
                     }
+
                     currentConversation = response.body();
-                    conversationList.addLast(response.body());
+                    Log.d("create conversation success", response.body().getTopic() + " " + response.body().getId());
+                    Log.d("create conversation success", currentConversation.getTopic() + " " + currentConversation.getId());
                 }
 
                 @Override
@@ -151,13 +153,12 @@ public class ChatActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext() ,"Something went wrong during creating conversation, please try again.", Toast.LENGTH_LONG).show();
                 }
             });
-        }
+        }*/
 
         //push written message on server and update recycler view
-        Message message = new Message(inputText.getText().toString(), participant.getId(), currentUser.getId());
-        messageService = retrofitInstance.getMessageService();
-        Call<Message> call = messageService.createMessage(message);
-        call.enqueue(new Callback<Message>() {
+        Message message = new Message(inputText.getText().toString(), participant.getId(), currentUser.getId(), currentConversation.getId());
+        Call<Message> callMessage = messageService.createMessage(message);
+        callMessage.enqueue(new Callback<Message>() {
             @Override
             public void onResponse(Call<Message> call, Response<Message> response) {
                 if(!response.isSuccessful()){
@@ -165,7 +166,11 @@ public class ChatActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext() ,"Something went wrong during creating message, please try again.", Toast.LENGTH_LONG).show();
                     return;
                 }
+                Log.d("create message success", response.body().getContent() + " " + response.body().getSenderId() + " " + response.body().getReceiverId());
                 messageList.addLast(response.body());
+                int wordListSize = messageList.size();
+                recyclerView.getAdapter().notifyItemInserted(wordListSize);
+                recyclerView.smoothScrollToPosition(wordListSize);
             }
 
             @Override
@@ -174,9 +179,6 @@ public class ChatActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext() ,"Something went wrong during creating message, please try again.", Toast.LENGTH_LONG).show();
             }
         });
-
         inputText.setText("");
-        messageListAdapter = new MessageListAdapter(this, messageList);
-        recyclerView.setAdapter(messageListAdapter);
     }
 }
