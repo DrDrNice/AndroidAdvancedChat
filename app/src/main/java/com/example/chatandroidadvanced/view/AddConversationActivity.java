@@ -37,14 +37,20 @@ public class AddConversationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_conversation);
 
+        //get current user which is logged in
+        currentUser = (Participant)getIntent().getSerializableExtra("currentUser");
+        Log.d("current user in addConversationActivity is", currentUser.getfirstName()+ " " + currentUser.getlastName() + " " + currentUser.getId());
+
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbarNewConversation);
         setSupportActionBar(toolbar);
 
-        //get current user which is logged in
-        currentUser = (Participant)getIntent().getSerializableExtra("currentUser");
+        recyclerview = findViewById(R.id.rcvContacts);
+        recyclerview.setLayoutManager(new LinearLayoutManager(this));
+        contactListAdapter = new ContactListAdapter(this, contactList, currentUser);
+        recyclerview.setAdapter(contactListAdapter);
+
         retrofitInstance = new RetrofitInstance();
         ParticipantService participantService = retrofitInstance.getParticipantService();
-
         Call<List<Participant>> call = participantService.getAllParticipants();
         call.enqueue(new Callback<List<Participant>>() {
             @Override
@@ -74,11 +80,6 @@ public class AddConversationActivity extends AppCompatActivity {
                 Log.d("get participants failed", t.toString());
             }
         });
-
-        recyclerview = findViewById(R.id.rcvContacts);
-        contactListAdapter = new ContactListAdapter(this, contactList, currentUser);
-        recyclerview.setAdapter(contactListAdapter);
-        recyclerview.setLayoutManager(new LinearLayoutManager(this));
     }
 
     @Override
