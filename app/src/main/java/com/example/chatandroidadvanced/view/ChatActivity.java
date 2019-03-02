@@ -48,12 +48,7 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-
-        //todo delete get data from bundle
-        //Bundle extras = getIntent().getExtras();
-        //participant = (Participant) extras.getSerializable("contact");
-        //currentUser = (Participant) extras.getSerializable("currentUser");
-
+        
         //get clicked contact from contaclistadapter
         participant = (Participant)getIntent().getSerializableExtra("contact");
         //get current user
