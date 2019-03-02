@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">ChatAndroidAdvanced</string>
+
+    <!--Create user screen-->
+    <string name="welcome_chat">ChatApp</string>
+    <string name="summary_chat">Welcome to ChatApp! Lets create your user.</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="e_mail">E-Mail</string>
+    <string name="create_user">Login</string>
+    <string name="cancel_create_user">Cancel</string>
+
+    <!--Conversation screen-->
+    <string name="conversation_header">Conversations</string>
+    <string name="conversation_image">Conversation Image</string>
+    <string name="conversation_partner">Conversation Partner</string>
+    <string name="conversation_message">Conversation Message</string>
+    <string name="conversation_time">00:00</string>
+
+    <!--New conversation screen-->
+    <string name="new_conversation_header">New Conversation</string>
+    <string name="cancel_add_conversation">Cancel</string>
+    <string name="add_conversation">Add</string>
+
+    <!--Chat screen-->
+    <string name="chat_header">Chat</string>
+    <string name="back_to_conversations">Back</string>
+    <string name="chat_input_text">Enter text...</string>
+    <string name="chat_send_button">Send</string>
+
+</resources>
